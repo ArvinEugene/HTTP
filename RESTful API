@@ -1,0 +1,48 @@
+pip install django djangorestframework
+django-admin startproject myproject
+cd myproject
+python manage.py startapp users
+# users/models.py
+from django.db import models
+
+class User(models.Model):
+    name = models.CharField(max_length=100)
+    email = models.EmailField()
+    age = models.IntegerField()
+
+# users/serializers.py
+from rest_framework import serializers
+from .models import User
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'name', 'email', 'age']
+# users/views.py
+from rest_framework import generics
+from .models import User
+from .serializers import UserSerializer
+
+class UserListCreateAPIView(generics.ListCreateAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+class UserRetrieveUpdateDestroyAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+# myproject/urls.py
+from django.urls import path, include
+
+urlpatterns = [
+    path('users/', include('users.urls')),
+]
+
+# users/urls.py
+from django.urls import path
+from .views import UserListCreateAPIView, UserRetrieveUpdateDestroyAPIView
+
+urlpatterns = [
+    path('', UserListCreateAPIView.as_view(), name='user-list-create'),
+    path('<int:pk>/', UserRetrieveUpdateDestroyAPIView.as_view(), name='user-retrieve-update-destroy'),
+]
+python manage.py runserver
